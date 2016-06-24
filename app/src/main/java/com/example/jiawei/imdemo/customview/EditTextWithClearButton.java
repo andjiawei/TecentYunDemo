@@ -44,7 +44,7 @@ public class EditTextWithClearButton extends EditText implements
         // 获取EditText的DrawableRight，假如没有设置我们使用默认的图片
         mClearDrawable = getCompoundDrawables()[2];
         if (mClearDrawable == null) {
-            mClearDrawable = getResources().getDrawable(R.drawable.tencent_tls_ui_text_field_clear_btn);
+            mClearDrawable = getResources().getDrawable(R.drawable.tencent_tls_ui_text_field_clear_btn);//设置X号的图片
         }
         mClearDrawable.setBounds(0, 0, mClearDrawable.getIntrinsicWidth(), mClearDrawable.getIntrinsicHeight());
         // 默认设置隐藏图标
@@ -93,6 +93,7 @@ public class EditTextWithClearButton extends EditText implements
 
     /**
      * 设置清除图标的显示与隐藏，调用setCompoundDrawables为EditText绘制上去
+     *
      * @param visible
      */
     protected void setClearIconVisible(boolean visible) {

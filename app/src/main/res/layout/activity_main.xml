@@ -60,7 +60,6 @@ tools:context=".MainActivity">
             android:paddingRight="@dimen/tencent_tls_ui_edittext_rightpadding"
             android:layout_marginRight="@dimen/tencent_tls_ui_edittext_margin"
             android:layout_marginBottom="@dimen/tencent_tls_ui_edittext_margin"
-            android:inputType="number"
             android:singleLine="true"
             android:background="@drawable/tencent_tls_ui_rounded_rectangle_normal"
             android:hint="请输入手机号"/>
@@ -88,7 +87,7 @@ tools:context=".MainActivity">
         android:singleLine="true"
         android:hint="短信验证码"/>
     <EditText
-        android:id="@+id/pwd"
+        android:id="@+id/et_pwd"
         android:layout_width="fill_parent"
         android:layout_height="@dimen/tencent_tls_ui_edittext_height"
         android:paddingLeft="@dimen/tencent_tls_ui_edittext_leftpadding"
@@ -132,11 +131,46 @@ tools:context=".MainActivity">
         android:layout_height="wrap_content"
         >
         <Button
-            android:onClick="reset"
+            android:onClick="resetPwd"
             android:layout_width="0dp"
             android:layout_weight="1"
             android:layout_height="wrap_content"
             android:text="reset" />
+        <Button
+            android:onClick="resetYanzheng"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:text="res验证" />
+        <Button
+            android:onClick="yzLogin"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:text="yzLogin" />
+        <Button
+            android:onClick="smsYanZheng"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:text="sms验证" />
+    </LinearLayout>
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        >
+        <Button
+            android:onClick="accountReg"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:text="accreg" />
+        <Button
+            android:onClick="userLogin"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:text="user登录" />
     </LinearLayout>
 
 

@@ -7,16 +7,27 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import com.example.jiawei.imdemo.customview.ChatActivity;
 import com.tencent.TIMCallBack;
 import com.tencent.TIMConnListener;
+import com.tencent.TIMFriendGroup;
+import com.tencent.TIMFriendshipProxyListener;
+import com.tencent.TIMFriendshipProxyStatus;
+import com.tencent.TIMGroupAssistantListener;
+import com.tencent.TIMGroupCacheInfo;
+import com.tencent.TIMGroupMemberInfo;
+import com.tencent.TIMGroupSettings;
 import com.tencent.TIMLogListener;
 import com.tencent.TIMManager;
 import com.tencent.TIMMessage;
 import com.tencent.TIMMessageListener;
+import com.tencent.TIMSNSChangeInfo;
 import com.tencent.TIMUser;
+import com.tencent.TIMUserProfile;
 import com.tencent.TIMUserStatusListener;
+import com.tencent.qalsdk.QALSDKManager;
 
 import java.util.List;
 
@@ -40,7 +51,7 @@ public class MainActivity extends AppCompatActivity {
     private static final String sdkAppId = "1400010712";
     private static final String accountType = "5645";
     private static final String appIdAt3rd = accountType;
-    private static final String Identifier = "jiawei";
+    private static  String Identifier = "jiawei";
     private  String userSig ;
 
 
@@ -63,23 +74,26 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        TIMManager.getInstance().init(getApplicationContext());//.so文件找不到 jni调用进坑了
+        initTLSSdk();
         userSig= getString(R.string.user_key);
         initView();
+        //初始化accountHelper
         initAccountReg();//初始化密码注册（字符串账号）
-        initListener();//第一步 初始化文档说的几个监听器
-
+        //改为appid登录后初始化
+//        initListener();//第一步 初始化文档说的几个监听器
 
         initSmsLoginListener();//短信登录的监听
     }
 
-    //-----------------------------开发者初始化登录登出------------------------------
+    //-----------------------------开发者初始化登录登出 正式登录前 要初始化如下信息------------------------------
 
     public void login(View v) {
         //sdkAppId 1400010712
         // accountType 和 sdkAppId 通讯云管理平台分配
         // identifier为用户名，userSig 为用户登录凭证
         // appidAt3rd 在私有帐号情况下，填写与sdkAppId 一样
-
+        Identifier=et_phone.getText().toString().trim();
         TIMUser user = new TIMUser();
         user.setAccountType(accountType);
         user.setAppIdAt3rd(appIdAt3rd);
@@ -87,7 +101,8 @@ public class MainActivity extends AppCompatActivity {
 //        final String getUser = TLSHelper.getInstance().getUserSig(Identifier);//这里得到的是""
 
         //就是用户凭证 下载的user_key中的文本
-        String userSig = getString(R.string.user_key);
+//        String userSig = getString(R.string.user_key);
+        String userSig=loginHelper.getUserSig(Identifier);
         //发起登录请求
         TIMManager.getInstance().login(
                 Integer.valueOf(sdkAppId),                   //sdkAppId，由腾讯分配
@@ -99,6 +114,7 @@ public class MainActivity extends AppCompatActivity {
                     public void onSuccess() {//登录成功
 
                         Log.e("-------------", "login succlogin succlogin succ");
+//                        initListener();
                     }
 
                     @Override
@@ -106,7 +122,7 @@ public class MainActivity extends AppCompatActivity {
 
                         //错误码code和错误描述desc，可用于定位请求失败原因
                         //错误码code含义请参见错误码表
-                        Log.d("-------------", "login failed. code: " + code + " errmsg: " + desc);
+                        Log.e("-------------", "login failed. code: " + code + " errmsg: " + desc);
                     }
                 });
     }//登录
@@ -470,6 +486,9 @@ public class MainActivity extends AppCompatActivity {
         TIMManager.getInstance().addMessageListener(new TIMMessageListener() {
             @Override
             public boolean onNewMessages(List<TIMMessage> list) {
+
+                Toast.makeText(context,"接收到消息MainActivity"+list.get(0).getSender(),Toast.LENGTH_SHORT).show();
+
                 return false;
             }//消息监听器
 
@@ -522,17 +541,121 @@ public class MainActivity extends AppCompatActivity {
             }
         });
         //中间几部不用 最后直接初始化sdk
-        TIMManager.getInstance().init(getApplicationContext());//.so文件找不到 jni调用进坑了
+
+
+
     }//初始化一堆东西
 
-    private void init() {
-        /*SharedPreferences pref = getSharedPreferences("data", MODE_PRIVATE);
-        int loglvl = pref.getInt("loglvl", TIMLogLevel.DEBUG.ordinal());
-        InitBusiness.start(getApplicationContext(),loglvl);
-        TlsBusiness.init(getApplicationContext());
-        String id =  TLSService.getInstance().getLastUserIdentifier();
-        UserInfo.getInstance().setId(id);
-        UserInfo.getInstance().setUserSig(TLSService.getInstance().getUserSig(id));*/
-    }//不知道干嘛 先放着
+    private void initTLSSdk() {
+
+        QALSDKManager.getInstance().init(context.getApplicationContext(), (int)TLSConfiguration.SDK_APPID);
+        QALSDKManager.getInstance().setEnv(0);     // 0: sso正式环境 1: sso测试环境, 即beta环境
+
+//        TIMManager.getInstance().init(context.getApplicationContext());
+//        TIMManager.getInstance().setEnv(1);
+
+        loginHelper = TLSLoginHelper.getInstance().init(context.getApplicationContext(),
+                TLSConfiguration.SDK_APPID, TLSConfiguration.ACCOUNT_TYPE, TLSConfiguration.APP_VERSION);
+        loginHelper.setTimeOut(TLSConfiguration.TIMEOUT);
+        loginHelper.setLocalId(TLSConfiguration.LANGUAGE_CODE);
+        loginHelper.setTestHost("", true);                   // 走sso
+//        loginHelper.setTestHost("113.108.64.238", false);      // 不走sso
+
+        accountHelper = TLSAccountHelper.getInstance().init(context.getApplicationContext(),
+                TLSConfiguration.SDK_APPID, TLSConfiguration.ACCOUNT_TYPE, TLSConfiguration.APP_VERSION);
+        accountHelper.setCountry(Integer.parseInt(TLSConfiguration.COUNTRY_CODE)); // 存储注册时所在国家，只须在初始化时调用一次
+        accountHelper.setTimeOut(TLSConfiguration.TIMEOUT);
+        accountHelper.setLocalId(TLSConfiguration.LANGUAGE_CODE);
+        accountHelper.setTestHost("", true);                 // 走sso
+//        accountHelper.setTestHost("113.108.64.238", false);    // 不走sso
+
+        //登录之前要初始化群和好友关系链缓存
+        TIMManager.getInstance().enableFriendshipStorage(true);
+        TIMManager.getInstance().setFriendshipProxyListener(new TIMFriendshipProxyListener() {
+            @Override
+            public void OnProxyStatusChange(TIMFriendshipProxyStatus timFriendshipProxyStatus) {
+
+            }
+
+            @Override
+            public void OnAddFriends(List<TIMUserProfile> list) {
+
+            }
+
+            @Override
+            public void OnDelFriends(List<String> list) {
+
+            }
+
+            @Override
+            public void OnFriendProfileUpdate(List<TIMUserProfile> list) {
+
+            }
+
+            @Override
+            public void OnAddFriendReqs(List<TIMSNSChangeInfo> list) {
+
+            }
+
+            @Override
+            public void OnAddFriendGroups(List<TIMFriendGroup> list) {
+
+            }
+
+            @Override
+            public void OnDelFriendGroups(List<String> list) {
+
+            }
+
+            @Override
+            public void OnFriendGroupUpdate(List<TIMFriendGroup> list) {
+
+            }
+        });
+        TIMManager.getInstance().initFriendshipSettings(0xFF, null);
+
+        //开启IMSDK本地存储
+        TIMManager.getInstance().enableGroupInfoStorage(true);
+        TIMManager.getInstance().setGroupAssistantListener(new TIMGroupAssistantListener() {
+            @Override
+            public void onMemberJoin(String s, List<TIMGroupMemberInfo> list) {
+
+            }
+
+            @Override
+            public void onMemberQuit(String s, List<String> list) {
+
+            }
+
+            @Override
+            public void onMemberUpdate(String s, List<TIMGroupMemberInfo> list) {
+
+            }
+
+            @Override
+            public void onGroupAdd(TIMGroupCacheInfo timGroupCacheInfo) {
+
+            }
+
+            @Override
+            public void onGroupDelete(String s) {
+
+            }
+
+            @Override
+            public void onGroupUpdate(TIMGroupCacheInfo timGroupCacheInfo) {
+
+            }
+        });
+        TIMGroupSettings settings = new TIMGroupSettings();
+        settings.setGroupInfoOptions(settings.new Options());
+        settings.setMemberInfoOptions(settings.new Options());
+        TIMManager.getInstance().initGroupSettings(settings);
+
+        //发送消息前需要开发者的login先登录 即先点击登录按钮
+//      LoginBusiness.loginIm(UserInfo.getInstance().getId(), UserInfo.getInstance().getUserSig(), this);
+
+    }//试错  sample中抄的-*
+
 
 }

@@ -19,6 +19,7 @@
     <string name="tencent_tls_ui_title_activity_phone_pwd">PhonePwdActivity</string>
     <string name="tencent_tls_ui_title_activity_phone_pwd_register">PhonePwdRegisterActivity</string>
     <string name="tencent_tls_ui_title_activity_reset_phone_pwd">ResetPhonePwdActivity</string>
+    <string name="conversation_username_hint">请输入对方用户名</string>
 
     <string-array name="tencent_tls_ui_countryCode">
         <item>中国大陆 +86</item>
